@@ -49,14 +49,16 @@ mao_enemy_def = pygame.image.load("Recursos/mao2-def.png")
 pos_player = [60,55]
 pos_enemy = [550,155]
 allow_choice = True
-player_hp = 200
-enemy_hp = 200
+player_hp = 500
+enemy_hp = 500
 player_choice = 0
 enemy_choice = 0
 
 black = (0,0,0)
 white = (255,255,255)
 gray = (65,65,65)
+red = (255,0,0)
+green = (0,255,0)
 
 def animacao_tesoura(player): 
     """True = player, False = enemy"""
@@ -72,7 +74,7 @@ def animacao_tesoura(player):
         elif timer_idle_player == 60:
             pos_player[0] = 60
             pos_player[1] = 55
-            damage_calc()
+            damage_calc(True)
     else:
         if timer_idle_enemy <= 20:
             pos_enemy[0] = 550 + timer_idle_enemy*2
@@ -84,7 +86,7 @@ def animacao_tesoura(player):
         elif timer_idle_enemy == 60:
             pos_enemy[0] = 550
             pos_enemy[1] = 155
-            damage_calc()
+            damage_calc(False)
 
 def animacao_papel(player): 
     """True = player, False = enemy"""
@@ -103,7 +105,7 @@ def animacao_papel(player):
         elif timer_idle_player == 60:
             pos_player[0] = 60
             pos_player[1] = 55
-            damage_calc()
+            damage_calc(True)
     else:
         if timer_idle_enemy <=25:
             pos_enemy[0] = 550 + timer_idle_enemy
@@ -118,7 +120,7 @@ def animacao_papel(player):
         elif timer_idle_enemy == 60:
             pos_enemy[0] = 550
             pos_enemy[1] = 155
-            damage_calc()
+            damage_calc(False)
 
 def animacao_pedra(player):
     """True = player, False = enemy"""
@@ -142,8 +144,7 @@ def animacao_pedra(player):
             pos_player[0] = 60
             pos_player[1] = 55
         elif timer_idle_player == 60:
-            if player_choice >= enemy_choice:
-                state_mao_enemy = enemy_choice + 2
+            damage_calc(True)
     else:
         if timer_idle_enemy <= 10:
             pos_enemy[1] = 155 - timer_idle_enemy
@@ -163,8 +164,7 @@ def animacao_pedra(player):
             pos_enemy[0] = 550
             pos_enemy[1] = 155
         elif timer_idle_enemy == 60:
-            if enemy_choice > player_choice:
-                state_mao_player = player_choice + 2
+            damage_calc(False)
     
 def batalha(choice):
     global player_choice, enemy_choice, state_mao_player, state_mao_enemy, timer_idle_player, timer_idle_enemy
@@ -176,20 +176,107 @@ def batalha(choice):
     else:
         state_mao_enemy = enemy_choice + 2
 
-def damage_calc():
-    global timer_idle_enemy, timer_idle_player, state_mao_player, state_mao_enemy, player_choice, enemy_choice
-    print("a")
+def damage_calc(player):
+    """True = player, False = enemy"""
+    global timer_idle_enemy, timer_idle_player, state_mao_player, state_mao_enemy, player_choice, enemy_choice, player_hp, enemy_hp
+    if player:
+        if player_choice == 3:
+            pygame.mixer.Sound.play(attackSFX3)
+        elif enemy_choice == 3:
+            if player_choice == 2:
+                pygame.mixer.Sound.play(attackSFX1)
+                player_hp -= 22.5
+                enemy_hp -= 40
+            elif player_choice == 1:
+                pygame.mixer.Sound.play(attackSFX2)
+                player_hp -= 30
+                enemy_hp -= 10
+        elif player_choice == 2:
+            pygame.mixer.Sound.play(attackSFX2)
+            enemy_hp -= 45
+        else: 
+            pygame.mixer.Sound.play(attackSFX1)
+            enemy_hp -=60
+    else:
+        if enemy_choice == 3:
+            pygame.mixer.Sound.play(attackSFX3)
+        elif player_choice == 3:
+            if enemy_choice == 2:
+                pygame.mixer.Sound.play(attackSFX1)
+                enemy_hp -= 22.5
+                player_hp -= 40
+            elif enemy_choice == 1:
+                pygame.mixer.Sound.play(attackSFX2)
+                enemy_hp -= 30
+                player_hp -= 10
+        elif enemy_choice == 2:
+            pygame.mixer.Sound.play(attackSFX2)
+            player_hp -= 45
+        else: 
+            pygame.mixer.Sound.play(attackSFX1)
+            player_hp -=60
+
     if player_choice >= enemy_choice:
         state_mao_enemy = enemy_choice +2
     else:
         state_mao_player = player_choice +2
 
+def victory():
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                quit()
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if button_quit.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    quit()
+
+        screen.fill(white)
+        screen.blit(back_menu, (0,0))
+        texto = fontMenu.render("Você Venceu!", True, white)
+        screen.blit(texto, (10,10))
+        button_quit = pygame.draw.rect(screen, black, (50,520,300,60))
+        texto = fontUI.render("Obrigado por Jogar!", True, white)
+        screen.blit(texto, (70,540))
+
+        pygame.display.update()
+        clock.tick(60)
+
+def defeat():
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                quit()
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if button_restart.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    main()
+                if button_quit.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    menu()
+
+        screen.fill(white)
+        screen.blit(back_menu, (0,0))
+        texto = fontMenu.render("Você foi derrotado!", True, white)
+        screen.blit(texto, (10,10))
+        button_restart = pygame.draw.rect(screen, black, (50,520,300,60))
+        texto = fontUI.render("Tentar Novamente", True, white)
+        screen.blit(texto, (80,540))
+        button_quit = pygame.draw.rect(screen, black, (400,520,300,60))
+        texto = fontUI.render("Menu Principal", True, white)
+        screen.blit(texto, (440,540))
+
+        pygame.display.update()
+        clock.tick(60)
+
+
 def main():
     pygame.mixer.music.play(-1)
-    global state_mao_player, timer_idle_player, state_mao_enemy, timer_idle_enemy, allow_choice, player_choice, enemy_choice
+    global state_mao_player, timer_idle_player, state_mao_enemy, timer_idle_enemy, allow_choice, player_choice, enemy_choice, player_hp, enemy_hp
     state_mao_player = 1
     state_mao_enemy = 2
-
+    player_hp = 500
+    enemy_hp = 500
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -201,6 +288,12 @@ def main():
                     batalha(2)
                 elif button_tesoura.collidepoint(evento.pos):
                     batalha(1)
+
+        if player_hp <= 0:
+            defeat()
+            break
+        elif enemy_hp <= 0:
+            victory()
 
         if state_mao_player == 1 and timer_idle_player > 40:
             state_mao_player = 2
@@ -249,6 +342,10 @@ def main():
         button_tesoura = pygame.draw.rect(screen, black, (550,520,200,60),3)
         texto = fontUI.render("TESOURA", True, white)
         screen.blit(texto, (590,540))
+        texto = font.render("HP:",True,white)
+        screen.blit(texto, (10,380))
+        pygame.draw.rect(screen,red,(40,380,250,15))
+        pygame.draw.rect(screen,green,(40,380,player_hp//2,15))
 
         if state_mao_player == 1:
             screen.blit(mao_player_idle1,(pos_player))
