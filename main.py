@@ -1,25 +1,25 @@
-import pygame, time
+import pygame, random
 
 pygame.init()
 
 clock = pygame.time.Clock()
-icon  = pygame.image.load("assets/icon.ico")
-back_batalha = pygame.image.load("assets/background.png")
-back_menu = pygame.image.load("assets/background_menu.png")
+icon  = pygame.image.load("Recursos/icon.ico")
+back_batalha = pygame.image.load("Recursos/background.png")
+back_menu = pygame.image.load("Recursos/background_menu.png")
 size = (800,600)
 screen = pygame.display.set_mode(size) 
 pygame.display.set_caption("Batalha PoucaMão")
 pygame.display.set_icon(icon)
-menuSFX = pygame.mixer.Sound("assets/menu_select.mp3")
-attackSFX1 = pygame.mixer.Sound("assets/attack1.mp3")
-attackSFX2 = pygame.mixer.Sound("assets/attack2.mp3")
-attackSFX3 = pygame.mixer.Sound("assets/attack3.mp3")
-switchSFX = pygame.mixer.Sound("assets/switch.mp3")
-koSFX = pygame.mixer.Sound("assets/ko.mp3")
+menuSFX = pygame.mixer.Sound("Recursos/menu_select.mp3")
+attackSFX1 = pygame.mixer.Sound("Recursos/attack1.mp3")
+attackSFX2 = pygame.mixer.Sound("Recursos/attack2.mp3")
+attackSFX3 = pygame.mixer.Sound("Recursos/attack3.mp3")
+switchSFX = pygame.mixer.Sound("Recursos/switch.mp3")
+koSFX = pygame.mixer.Sound("Recursos/ko.mp3")
 font = pygame.font.SysFont("arial",18)
 fontMenu = pygame.font.SysFont("arial",55)
 fontUI = pygame.font.SysFont("roboto",35)
-pygame.mixer.music.load("assets/Battle! Gym Leader - Remix Cover (Pokémon Black and White) - 128.mp3")
+pygame.mixer.music.load("Recursos/Battle! Gym Leader - Remix Cover (Pokémon Black and White) - 128.mp3")
 pygame.mixer.music.set_volume(0.3)
 
 timer_idle_player = 0
@@ -37,28 +37,28 @@ state_mao_player = 0; state_mao_enemy = 0
 7 = def
 """
 
-mao_player_idle1 = pygame.image.load("assets/mao1-idle1.png")
-mao_player_idle2 = pygame.image.load("assets/mao1-idle2.png")
-mao_player_atk1 = pygame.image.load("assets/mao1-atk1.png")
-mao_player_atk2 = pygame.image.load("assets/mao1-atk2.png")
-mao_player_atk3 = pygame.image.load("assets/mao1-atk3.png")
-mao_player_dmg = pygame.image.load("assets/mao1-dmg.png")
-mao_player_def = pygame.image.load("assets/mao1-def.png") 
+mao_player_idle1 = pygame.image.load("Recursos/mao1-idle1.png")
+mao_player_idle2 = pygame.image.load("Recursos/mao1-idle2.png")
+mao_player_atk1 = pygame.image.load("Recursos/mao1-atk1.png")
+mao_player_atk2 = pygame.image.load("Recursos/mao1-atk2.png")
+mao_player_atk3 = pygame.image.load("Recursos/mao1-atk3.png")
+mao_player_dmg = pygame.image.load("Recursos/mao1-dmg.png")
+mao_player_def = pygame.image.load("Recursos/mao1-def.png") 
 
-mao_enemy_idle1 = pygame.image.load("assets/mao2-idle1.png")
-mao_enemy_idle2 = pygame.image.load("assets/mao2-idle2.png")
-mao_enemy_atk1 = pygame.image.load("assets/mao2-atk1.png")
-mao_enemy_atk2 = pygame.image.load("assets/mao2-atk2.png")
-mao_enemy_atk3 = pygame.image.load("assets/mao2-atk3.png")
-mao_enemy_dmg = pygame.image.load("assets/mao2-dmg.png")
-mao_enemy_def = pygame.image.load("assets/mao2-def.png") 
+mao_enemy_idle1 = pygame.image.load("Recursos/mao2-idle1.png")
+mao_enemy_idle2 = pygame.image.load("Recursos/mao2-idle2.png")
+mao_enemy_atk1 = pygame.image.load("Recursos/mao2-atk1.png")
+mao_enemy_atk2 = pygame.image.load("Recursos/mao2-atk2.png")
+mao_enemy_atk3 = pygame.image.load("Recursos/mao2-atk3.png")
+mao_enemy_dmg = pygame.image.load("Recursos/mao2-dmg.png")
+mao_enemy_def = pygame.image.load("Recursos/mao2-def.png") 
 
 pos_player = [60,55]
 pos_enemy = [550,155]
 
 black = (0,0,0)
 white = (255,255,255)
-gray = (140,140,140)
+gray = (65,65,65)
 
 def animacao_tesoura(player): 
     """True = player, False = enemy"""
@@ -73,6 +73,7 @@ def animacao_tesoura(player):
             state_mao_enemy = 6
         elif timer_idle_player == 60:
             pos_player[0] = 60
+            pos_player[1] = 55
     else:
         if timer_idle_enemy <= 20:
             pos_enemy[0] = 550 + timer_idle_enemy*2
@@ -83,6 +84,7 @@ def animacao_tesoura(player):
             state_mao_player = 6
         elif timer_idle_enemy == 60:
             pos_enemy[0] = 550
+            pos_enemy[1] = 155
 
 def animacao_papel(player): 
     """True = player, False = enemy"""
@@ -135,6 +137,8 @@ def animacao_pedra(player):
             state_mao_player = 7
         elif timer_idle_player > 55:
             state_mao_player = 5
+            pos_player[0] = 60
+            pos_player[1] = 55
     else:
         if timer_idle_enemy <= 10:
             pos_enemy[1] = 155 - timer_idle_enemy
@@ -151,8 +155,8 @@ def animacao_pedra(player):
             state_mao_enemy = 7
         elif timer_idle_enemy > 55:
             state_mao_enemy = 5
-
-
+            pos_enemy[0] = 550
+            pos_enemy[1] = 155
 
 def mao_player_atk_animation(i):
     global state_mao_player, state_mao_enemy, timer_idle_player, timer_idle_enemy
@@ -205,6 +209,13 @@ def batalha():
                 mao_enemy_atk_animation(2)
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_6:
                 mao_enemy_atk_animation(3)
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if button_pedra.collidepoint(evento.pos):
+                    mao_player_atk_animation(3)
+                elif button_papel.collidepoint(evento.pos):
+                    mao_player_atk_animation(2)
+                elif button_tesoura.collidepoint(evento.pos):
+                    mao_player_atk_animation(1)
 
         if state_mao_player == 1 and timer_idle_player > 40:
             state_mao_player = 2
@@ -240,6 +251,19 @@ def batalha():
 
         screen.fill(white)
         screen.blit(back_batalha, (0,0))
+
+        pygame.draw.rect(screen,gray,(50,520,200,60))
+        button_pedra = pygame.draw.rect(screen, black, (50,520,200,60),3)
+        texto = fontUI.render("PEDRA", True, white)
+        screen.blit(texto, (105,540))
+        pygame.draw.rect(screen, gray, (300,520,200,60))
+        button_papel = pygame.draw.rect(screen, black, (300,520,200,60),3)
+        texto = fontUI.render("PAPEL", True, white)
+        screen.blit(texto, (360,540))
+        pygame.draw.rect(screen, gray, (550,520,200,60))
+        button_tesoura = pygame.draw.rect(screen, black, (550,520,200,60),3)
+        texto = fontUI.render("TESOURA", True, white)
+        screen.blit(texto, (590,540))
 
         if state_mao_player == 1:
             screen.blit(mao_player_idle1,(pos_player))
@@ -281,17 +305,20 @@ def help():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
-                pygame.mixer.Sound.play(menuSFX)
-                start()
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if button_menu.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    start()
+
         screen.fill(white)
         screen.blit(back_menu, (0,0))
         texto = fontMenu.render("Regras", True, white)
         screen.blit(texto, (10,10))
         texto = font.render("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", True, white)
         screen.blit(texto, (10,150))
-        texto = fontUI.render("Aperte 'Espaço' para voltar ao menu.", True, white)
-        screen.blit(texto, (10,550))
+        button_menu = pygame.draw.rect(screen, black, (400,520,300,60))
+        texto = fontUI.render("Voltar para o Menu", True, white)
+        screen.blit(texto, (440,540))
 
         pygame.display.update()
         clock.tick(60)
@@ -301,21 +328,25 @@ def start():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
-                pygame.mixer.Sound.play(menuSFX)
-                batalha()
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_h:
-                pygame.mixer.Sound.play(menuSFX)
-                help()
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if button_start.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    batalha()
+                elif button_help.collidepoint(evento.pos):
+                    pygame.mixer.Sound.play(menuSFX)
+                    help()
+                
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
         texto = fontMenu.render("Bem Vindo à Batalha PoucaMão", True, white)
         screen.blit(texto, (10,10))
-        texto = fontUI.render("Aperte 'Espaço' para começar!", True, white)
-        screen.blit(texto, (10,500))
-        texto = fontUI.render("Aperte 'H' para ajuda.", True, white)
-        screen.blit(texto, (10,550))
+        button_start = pygame.draw.rect(screen, black, (50,520,300,60))
+        texto = fontUI.render("JOGAR", True, white)
+        screen.blit(texto, (140,540))
+        button_help = pygame.draw.rect(screen, black, (400,520,300,60))
+        texto = fontUI.render("Ajuda", True, white)
+        screen.blit(texto, (520,540))
 
         pygame.display.update()
         clock.tick(60)
