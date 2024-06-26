@@ -21,7 +21,7 @@ font = pygame.font.SysFont("roboto",24)
 fontMenu = pygame.font.SysFont("roboto",65)
 fontUI = pygame.font.SysFont("roboto",35)
 pygame.mixer.music.load("Recursos/Battle! Gym Leader - Remix Cover (Pokémon Black and White) - 128.mp3")
-pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.set_volume(0.2)
 
 timer_idle_player = 0
 timer_idle_enemy = 0
@@ -46,6 +46,11 @@ mao_enemy_atk3 = pygame.image.load("Recursos/mao2-atk3.png")
 mao_enemy_dmg = pygame.image.load("Recursos/mao2-dmg.png")
 mao_enemy_def = pygame.image.load("Recursos/mao2-def.png") 
 
+passaro1 = pygame.image.load("Recursos/passaro1.png")
+passaro2 = pygame.image.load("Recursos/passaro2.png")
+coord_passaro = [-100,140]
+state_passaro = 0
+
 pos_player = [60,55]
 pos_enemy = [550,155]
 allow_choice = True
@@ -59,6 +64,23 @@ white = (255,255,255)
 gray = (65,65,65)
 red = (255,0,0)
 green = (0,255,0)
+yellow = (255,255,0)
+
+def passaro():
+    global coord_passaro, state_passaro
+    if coord_passaro[1] > -100:
+        state_passaro += 1
+        coord_passaro[0]+=.5
+        coord_passaro[1]-=.2
+        if state_passaro < 15:
+            screen.blit(passaro1,(coord_passaro))
+        elif state_passaro >= 15 and state_passaro < 30:
+            screen.blit(passaro2,(coord_passaro))
+        elif state_passaro >=30:
+            screen.blit(passaro1,(coord_passaro))
+            state_passaro = 0
+    else:
+        coord_passaro = [0,120]
 
 def animacao_tesoura(player): 
     """True = player, False = enemy"""
@@ -222,6 +244,7 @@ def damage_calc(player):
         state_mao_player = player_choice +2
 
 def victory():
+    animacao_state = 0
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -233,16 +256,25 @@ def victory():
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
+        passaro()
         texto = fontMenu.render("Você Venceu!", True, white)
         screen.blit(texto, (10,10))
+        if animacao_state < 10:
+            screen.blit(mao_player_idle1, (300,200))
+        elif animacao_state >= 10 and animacao_state <20:
+            screen.blit(mao_player_idle2, (300,165))
+        elif animacao_state >= 20:
+            screen.blit(mao_player_idle1, (300,200))
+            animacao_state = 0
         button_quit = pygame.draw.rect(screen, black, (50,520,300,60))
         texto = fontUI.render("Obrigado por Jogar!", True, white)
         screen.blit(texto, (70,540))
-
+        animacao_state += 1
         pygame.display.update()
         clock.tick(60)
 
 def defeat():
+    animacao_state = 0
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -257,18 +289,25 @@ def defeat():
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
+        passaro()
         texto = fontMenu.render("Você foi derrotado!", True, white)
         screen.blit(texto, (10,10))
+        if animacao_state < 10:
+            screen.blit(mao_enemy_idle1, (300,300))
+        elif animacao_state >= 10 and animacao_state <20:
+            screen.blit(mao_enemy_idle2, (300,270))
+        elif animacao_state >= 20:
+            screen.blit(mao_enemy_idle1, (300,300))
+            animacao_state = 0
         button_restart = pygame.draw.rect(screen, black, (50,520,300,60))
         texto = fontUI.render("Tentar Novamente", True, white)
         screen.blit(texto, (80,540))
         button_quit = pygame.draw.rect(screen, black, (400,520,300,60))
         texto = fontUI.render("Menu Principal", True, white)
         screen.blit(texto, (440,540))
-
+        animacao_state += 1
         pygame.display.update()
         clock.tick(60)
-
 
 def main():
     pygame.mixer.music.play(-1)
@@ -288,13 +327,13 @@ def main():
                     batalha(2)
                 elif button_tesoura.collidepoint(evento.pos):
                     batalha(1)
-
+        
         if player_hp <= 0:
             defeat()
             break
         elif enemy_hp <= 0:
             victory()
-
+        
         if state_mao_player == 1 and timer_idle_player > 40:
             state_mao_player = 2
             timer_idle_player = 0
@@ -329,6 +368,8 @@ def main():
 
         screen.fill(white)
         screen.blit(back_batalha, (0,0))
+        pygame.draw.circle(screen,yellow,(750,50),enemy_hp//10)
+        passaro()
 
         pygame.draw.rect(screen,gray,(50,520,200,60))
         button_pedra = pygame.draw.rect(screen, black, (50,520,200,60),3)
@@ -394,10 +435,23 @@ def help():
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
-        texto = fontMenu.render("Regras", True, white)
+        passaro()
+        texto = fontMenu.render("Regras", True, black)
         screen.blit(texto, (10,10))
-        texto = font.render("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", True, white)
+        texto = fontUI.render("PEDRA (-50)", True, black)
+        screen.blit(texto, (10,120))
+        texto = font.render("A Pedra sempre ataca primeiro. Ela irá diminuir o dano do próximo ataque no mesmo turno em 50,",True,black) 
         screen.blit(texto, (10,150))
+        texto = font.render("além de refletir metade do dano base no oponente.", True, black)
+        screen.blit(texto, (10,170))
+        texto = fontUI.render("PAPEL (45)", True, black)
+        screen.blit(texto, (10,220))
+        texto = font.render("O Papel não possui proridade. Inflinge o dobro do dano base quando ataca em segundo.", True, black)
+        screen.blit(texto, (10,250))
+        texto = fontUI.render("TESOURA (60)", True, black)
+        screen.blit(texto, (10,300))
+        texto = font.render("A Tesoura sempre move por último. Não possui nenhum efeito especial.", True, black)
+        screen.blit(texto, (10,330))
         button_menu = pygame.draw.rect(screen, black, (400,520,300,60))
         texto = fontUI.render("Voltar para o Menu", True, white)
         screen.blit(texto, (440,540))
@@ -420,7 +474,8 @@ def menu():
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
-        texto = fontMenu.render("Bem Vindo à Batalha PoucaMão", True, white)
+        passaro()
+        texto = fontMenu.render("Bem Vindo à Batalha PoucaMão", True, black)
         screen.blit(texto, (10,10))
         button_start = pygame.draw.rect(screen, black, (50,520,300,60))
         texto = fontUI.render("JOGAR", True, white)
@@ -428,7 +483,6 @@ def menu():
         button_help = pygame.draw.rect(screen, black, (400,520,300,60))
         texto = fontUI.render("Ajuda", True, white)
         screen.blit(texto, (520,540))
-
         pygame.display.update()
         clock.tick(60)
 
