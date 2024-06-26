@@ -1,4 +1,5 @@
-import pygame, random
+import pygame
+from random import randint
 
 pygame.init()
 
@@ -16,26 +17,18 @@ attackSFX2 = pygame.mixer.Sound("Recursos/attack2.mp3")
 attackSFX3 = pygame.mixer.Sound("Recursos/attack3.mp3")
 switchSFX = pygame.mixer.Sound("Recursos/switch.mp3")
 koSFX = pygame.mixer.Sound("Recursos/ko.mp3")
-font = pygame.font.SysFont("arial",18)
-fontMenu = pygame.font.SysFont("arial",55)
+font = pygame.font.SysFont("roboto",24)
+fontMenu = pygame.font.SysFont("roboto",65)
 fontUI = pygame.font.SysFont("roboto",35)
 pygame.mixer.music.load("Recursos/Battle! Gym Leader - Remix Cover (Pokémon Black and White) - 128.mp3")
 pygame.mixer.music.set_volume(0.3)
 
 timer_idle_player = 0
 timer_idle_enemy = 0
+golpe_player = 0; golpe_enemy = 0
+"""1= Tesoura, 2= Papel, 3= Pedra"""
 state_mao_player = 0; state_mao_enemy = 0
-
-"""
-0 = invisivel,
-1 = idle 1,
-2 = idle 2,
-3 = atk 1,
-4 = atk 2,
-5 = atk 3,
-6 = dano,
-7 = def
-"""
+"""0= invisivel, 1= idle1, 2= idle2, 3= atk1, 4= atk2, 5= atk3, 6= dano, 7= def"""
 
 mao_player_idle1 = pygame.image.load("Recursos/mao1-idle1.png")
 mao_player_idle2 = pygame.image.load("Recursos/mao1-idle2.png")
@@ -55,6 +48,11 @@ mao_enemy_def = pygame.image.load("Recursos/mao2-def.png")
 
 pos_player = [60,55]
 pos_enemy = [550,155]
+allow_choice = True
+player_hp = 200
+enemy_hp = 200
+player_choice = 0
+enemy_choice = 0
 
 black = (0,0,0)
 white = (255,255,255)
@@ -62,7 +60,7 @@ gray = (65,65,65)
 
 def animacao_tesoura(player): 
     """True = player, False = enemy"""
-    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy
+    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy, player_choice, enemy_choice
     if player:
         if timer_idle_player <= 20:
             pos_player[0] = 60 - timer_idle_player*2
@@ -74,6 +72,7 @@ def animacao_tesoura(player):
         elif timer_idle_player == 60:
             pos_player[0] = 60
             pos_player[1] = 55
+            damage_calc()
     else:
         if timer_idle_enemy <= 20:
             pos_enemy[0] = 550 + timer_idle_enemy*2
@@ -85,17 +84,18 @@ def animacao_tesoura(player):
         elif timer_idle_enemy == 60:
             pos_enemy[0] = 550
             pos_enemy[1] = 155
+            damage_calc()
 
 def animacao_papel(player): 
     """True = player, False = enemy"""
-    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy
+    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy, player_choice, enemy_choice
     if player:
         if timer_idle_player <=25:
             pos_player[0] = 60 - timer_idle_player*2
-        elif timer_idle_player >= 30 and timer_idle_player <=40:
+        elif timer_idle_player >= 30 and timer_idle_player <=41:
             pos_player[0] = -740 + timer_idle_player*25
             pos_player[1] = 105 - timer_idle_player*2
-        elif timer_idle_player >40 and timer_idle_player < 45: 
+        elif timer_idle_player >41 and timer_idle_player < 45: 
             state_mao_enemy = 6
         elif timer_idle_player >= 45 and timer_idle_player < 60:
             pos_player[0] = 295 - timer_idle_player*2
@@ -103,13 +103,14 @@ def animacao_papel(player):
         elif timer_idle_player == 60:
             pos_player[0] = 60
             pos_player[1] = 55
+            damage_calc()
     else:
         if timer_idle_enemy <=25:
             pos_enemy[0] = 550 + timer_idle_enemy
-        elif timer_idle_enemy >= 30 and timer_idle_enemy <=40:
+        elif timer_idle_enemy >= 30 and timer_idle_enemy <=41:
             pos_enemy[0] = 940 - timer_idle_enemy*12
             pos_enemy[1] = 185 - timer_idle_enemy
-        elif timer_idle_enemy >40 and timer_idle_enemy < 45: 
+        elif timer_idle_enemy >41 and timer_idle_enemy < 45: 
             state_mao_player = 6
         elif timer_idle_enemy >= 45 and timer_idle_enemy < 60:
             pos_enemy[0] = 415 + timer_idle_enemy
@@ -117,10 +118,11 @@ def animacao_papel(player):
         elif timer_idle_enemy == 60:
             pos_enemy[0] = 550
             pos_enemy[1] = 155
+            damage_calc()
 
 def animacao_pedra(player):
     """True = player, False = enemy"""
-    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy
+    global pos_player, pos_enemy, timer_idle_player, timer_idle_enemy, state_mao_player, state_mao_enemy, player_choice, enemy_choice
     if player:
         if timer_idle_player <= 10:
             pos_player[1] = 55 - timer_idle_player*2
@@ -135,10 +137,13 @@ def animacao_pedra(player):
             state_mao_player = 5
         elif timer_idle_player > 50 and timer_idle_player <= 55:
             state_mao_player = 7
-        elif timer_idle_player > 55:
+        elif timer_idle_player > 55 and timer_idle_player < 60:
             state_mao_player = 5
             pos_player[0] = 60
             pos_player[1] = 55
+        elif timer_idle_player == 60:
+            if player_choice >= enemy_choice:
+                state_mao_enemy = enemy_choice + 2
     else:
         if timer_idle_enemy <= 10:
             pos_enemy[1] = 155 - timer_idle_enemy
@@ -153,43 +158,35 @@ def animacao_pedra(player):
             state_mao_enemy = 5
         elif timer_idle_enemy > 50 and timer_idle_enemy <= 55:
             state_mao_enemy = 7
-        elif timer_idle_enemy > 55:
+        elif timer_idle_enemy > 55 and timer_idle_enemy <60:
             state_mao_enemy = 5
             pos_enemy[0] = 550
             pos_enemy[1] = 155
+        elif timer_idle_enemy == 60:
+            if enemy_choice > player_choice:
+                state_mao_player = player_choice + 2
+    
+def batalha(choice):
+    global player_choice, enemy_choice, state_mao_player, state_mao_enemy, timer_idle_player, timer_idle_enemy
+    timer_idle_enemy = 0; timer_idle_player = 0
+    player_choice = choice
+    enemy_choice = randint(1,3)
+    if player_choice >= enemy_choice:
+        state_mao_player = player_choice + 2
+    else:
+        state_mao_enemy = enemy_choice + 2
 
-def mao_player_atk_animation(i):
-    global state_mao_player, state_mao_enemy, timer_idle_player, timer_idle_enemy
-    timer_idle_player = 0
-    timer_idle_enemy = 0
-    if i == 1:
-        state_mao_player = 3
-        pygame.mixer.Sound.play(attackSFX1)
-    elif i == 2:    
-        state_mao_player = 4
-        pygame.mixer.Sound.play(attackSFX2)
-    elif i == 3:
-        state_mao_player = 5
-        pygame.mixer.Sound.play(attackSFX3)
+def damage_calc():
+    global timer_idle_enemy, timer_idle_player, state_mao_player, state_mao_enemy, player_choice, enemy_choice
+    print("a")
+    if player_choice >= enemy_choice:
+        state_mao_enemy = enemy_choice +2
+    else:
+        state_mao_player = player_choice +2
 
-def mao_enemy_atk_animation(i):
-    global state_mao_player, state_mao_enemy, timer_idle_player, timer_idle_enemy
-    timer_idle_player = 0
-    timer_idle_enemy = 0
-    if i == 1:
-        state_mao_enemy = 3
-        pygame.mixer.Sound.play(attackSFX1)
-    elif i == 2:
-        state_mao_enemy = 4
-        pygame.mixer.Sound.play(attackSFX2)
-    elif i == 3:
-        state_mao_enemy = 5
-        pygame.mixer.Sound.play(attackSFX3)
-
-
-def batalha():
+def main():
     pygame.mixer.music.play(-1)
-    global state_mao_player, timer_idle_player, state_mao_enemy, timer_idle_enemy
+    global state_mao_player, timer_idle_player, state_mao_enemy, timer_idle_enemy, allow_choice, player_choice, enemy_choice
     state_mao_player = 1
     state_mao_enemy = 2
 
@@ -197,25 +194,13 @@ def batalha():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_1:
-                mao_player_atk_animation(1)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_2:
-                mao_player_atk_animation(2)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_3:
-                mao_player_atk_animation(3)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_4:
-                mao_enemy_atk_animation(1)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_5:
-                mao_enemy_atk_animation(2)
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_6:
-                mao_enemy_atk_animation(3)
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
+            elif evento.type == pygame.MOUSEBUTTONDOWN and allow_choice:
                 if button_pedra.collidepoint(evento.pos):
-                    mao_player_atk_animation(3)
+                    batalha(3)
                 elif button_papel.collidepoint(evento.pos):
-                    mao_player_atk_animation(2)
+                    batalha(2)
                 elif button_tesoura.collidepoint(evento.pos):
-                    mao_player_atk_animation(1)
+                    batalha(1)
 
         if state_mao_player == 1 and timer_idle_player > 40:
             state_mao_player = 2
@@ -308,7 +293,7 @@ def help():
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if button_menu.collidepoint(evento.pos):
                     pygame.mixer.Sound.play(menuSFX)
-                    start()
+                    menu()
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
@@ -323,7 +308,7 @@ def help():
         pygame.display.update()
         clock.tick(60)
 
-def start(): 
+def menu(): 
     while True: 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -331,11 +316,10 @@ def start():
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if button_start.collidepoint(evento.pos):
                     pygame.mixer.Sound.play(menuSFX)
-                    batalha()
+                    main()
                 elif button_help.collidepoint(evento.pos):
                     pygame.mixer.Sound.play(menuSFX)
                     help()
-                
 
         screen.fill(white)
         screen.blit(back_menu, (0,0))
@@ -351,4 +335,4 @@ def start():
         pygame.display.update()
         clock.tick(60)
 
-start()
+menu()
